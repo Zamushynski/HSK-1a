@@ -1,0 +1,1174 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#1a1a2e">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="HSK1 汉语">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="icon" href="icon-192.png">
+  <title>HSK1 汉语</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@200;300;400;600&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      background: #0d1117; 
+      overscroll-behavior: none;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    html, body, #root { height: 100%; }
+    button { -webkit-tap-highlight-color: transparent; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+  <script type="text/babel">
+    const { useState, useEffect, useCallback, useRef } = React;
+
+
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 480);
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < 480);
+    window.addEventListener("resize", handler);
+    return () => window.removeEventListener("resize", handler);
+  }, []);
+  return isMobile;
+}
+
+const HSK1_VOCAB = [
+  // People & Pronouns
+  { id: 1, zh: "我", pinyin: "wǒ", en: "I, me", cat: "pronouns" },
+  { id: 2, zh: "你", pinyin: "nǐ", en: "you", cat: "pronouns" },
+  { id: 3, zh: "他", pinyin: "tā", en: "he, him", cat: "pronouns" },
+  { id: 4, zh: "她", pinyin: "tā", en: "she, her", cat: "pronouns" },
+  { id: 5, zh: "我们", pinyin: "wǒmen", en: "we, us", cat: "pronouns" },
+  { id: 6, zh: "你们", pinyin: "nǐmen", en: "you (plural)", cat: "pronouns" },
+  { id: 7, zh: "他们", pinyin: "tāmen", en: "they, them", cat: "pronouns" },
+  { id: 8, zh: "这", pinyin: "zhè", en: "this", cat: "pronouns" },
+  { id: 9, zh: "那", pinyin: "nà", en: "that", cat: "pronouns" },
+  { id: 10, zh: "哪", pinyin: "nǎ", en: "which", cat: "pronouns" },
+  { id: 11, zh: "谁", pinyin: "shéi", en: "who", cat: "pronouns" },
+  { id: 12, zh: "什么", pinyin: "shénme", en: "what", cat: "pronouns" },
+  { id: 13, zh: "多少", pinyin: "duōshao", en: "how many/much", cat: "pronouns" },
+  { id: 14, zh: "几", pinyin: "jǐ", en: "how many, several", cat: "pronouns" },
+  { id: 15, zh: "怎么", pinyin: "zěnme", en: "how", cat: "pronouns" },
+  { id: 16, zh: "怎么样", pinyin: "zěnmeyàng", en: "how about", cat: "pronouns" },
+
+  // Verbs
+  { id: 17, zh: "是", pinyin: "shì", en: "to be", cat: "verbs" },
+  { id: 18, zh: "有", pinyin: "yǒu", en: "to have", cat: "verbs" },
+  { id: 19, zh: "看", pinyin: "kàn", en: "to look, to see", cat: "verbs" },
+  { id: 20, zh: "看见", pinyin: "kànjiàn", en: "to see", cat: "verbs" },
+  { id: 21, zh: "听", pinyin: "tīng", en: "to listen", cat: "verbs" },
+  { id: 22, zh: "说", pinyin: "shuō", en: "to speak, to say", cat: "verbs" },
+  { id: 23, zh: "读", pinyin: "dú", en: "to read", cat: "verbs" },
+  { id: 24, zh: "写", pinyin: "xiě", en: "to write", cat: "verbs" },
+  { id: 25, zh: "叫", pinyin: "jiào", en: "to call, to be called", cat: "verbs" },
+  { id: 26, zh: "来", pinyin: "lái", en: "to come", cat: "verbs" },
+  { id: 27, zh: "去", pinyin: "qù", en: "to go", cat: "verbs" },
+  { id: 28, zh: "回", pinyin: "huí", en: "to return", cat: "verbs" },
+  { id: 29, zh: "吃", pinyin: "chī", en: "to eat", cat: "verbs" },
+  { id: 30, zh: "喝", pinyin: "hè", en: "to drink", cat: "verbs" },
+  { id: 31, zh: "做", pinyin: "zuò", en: "to do, to make", cat: "verbs" },
+  { id: 32, zh: "买", pinyin: "mǎi", en: "to buy", cat: "verbs" },
+  { id: 33, zh: "开", pinyin: "kāi", en: "to open, to drive", cat: "verbs" },
+  { id: 34, zh: "坐", pinyin: "zuò", en: "to sit", cat: "verbs" },
+  { id: 35, zh: "住", pinyin: "zhù", en: "to live", cat: "verbs" },
+  { id: 36, zh: "学习", pinyin: "xuéxí", en: "to study", cat: "verbs" },
+  { id: 37, zh: "工作", pinyin: "gōngzuò", en: "to work; work", cat: "verbs" },
+  { id: 38, zh: "睡觉", pinyin: "shuìjiào", en: "to sleep", cat: "verbs" },
+  { id: 39, zh: "打电话", pinyin: "dǎ diànhuà", en: "to make a phone call", cat: "verbs" },
+  { id: 40, zh: "喜欢", pinyin: "xǐhuan", en: "to like", cat: "verbs" },
+  { id: 41, zh: "想", pinyin: "xiǎng", en: "to want, to think", cat: "verbs" },
+  { id: 42, zh: "认识", pinyin: "rènshi", en: "to know (a person)", cat: "verbs" },
+  { id: 43, zh: "会", pinyin: "huì", en: "can, will", cat: "verbs" },
+  { id: 44, zh: "能", pinyin: "néng", en: "can, able to", cat: "verbs" },
+  { id: 45, zh: "请", pinyin: "qǐng", en: "please; to invite", cat: "verbs" },
+  { id: 46, zh: "下雨", pinyin: "xià yǔ", en: "to rain", cat: "verbs" },
+
+  // Nouns - People
+  { id: 47, zh: "人", pinyin: "rén", en: "person, people", cat: "nouns" },
+  { id: 48, zh: "朋友", pinyin: "péngyou", en: "friend", cat: "nouns" },
+  { id: 49, zh: "同学", pinyin: "tóngxué", en: "classmate", cat: "nouns" },
+  { id: 50, zh: "老师", pinyin: "lǎoshī", en: "teacher", cat: "nouns" },
+  { id: 51, zh: "学生", pinyin: "xuésheng", en: "student", cat: "nouns" },
+  { id: 52, zh: "医生", pinyin: "yīshēng", en: "doctor", cat: "nouns" },
+  { id: 53, zh: "先生", pinyin: "xiānsheng", en: "Mr., sir", cat: "nouns" },
+  { id: 54, zh: "小姐", pinyin: "xiǎojiě", en: "Miss, Ms.", cat: "nouns" },
+  { id: 55, zh: "爸爸", pinyin: "bàba", en: "father", cat: "nouns" },
+  { id: 56, zh: "妈妈", pinyin: "māma", en: "mother", cat: "nouns" },
+  { id: 57, zh: "儿子", pinyin: "érzi", en: "son", cat: "nouns" },
+  { id: 58, zh: "女儿", pinyin: "nǚ'ér", en: "daughter", cat: "nouns" },
+  { id: 59, zh: "家", pinyin: "jiā", en: "home, family", cat: "nouns" },
+
+  // Nouns - Things
+  { id: 60, zh: "东西", pinyin: "dōngxi", en: "thing", cat: "nouns" },
+  { id: 61, zh: "水", pinyin: "shuǐ", en: "water", cat: "nouns" },
+  { id: 62, zh: "茶", pinyin: "chá", en: "tea", cat: "nouns" },
+  { id: 63, zh: "米饭", pinyin: "mǐfàn", en: "rice", cat: "nouns" },
+  { id: 64, zh: "菜", pinyin: "cài", en: "dish, vegetable", cat: "nouns" },
+  { id: 65, zh: "水果", pinyin: "shuǐguǒ", en: "fruit", cat: "nouns" },
+  { id: 66, zh: "苹果", pinyin: "píngguǒ", en: "apple", cat: "nouns" },
+  { id: 67, zh: "杯子", pinyin: "bēizi", en: "cup, glass", cat: "nouns" },
+  { id: 68, zh: "钱", pinyin: "qián", en: "money", cat: "nouns" },
+  { id: 69, zh: "飞机", pinyin: "fēijī", en: "airplane", cat: "nouns" },
+  { id: 70, zh: "出租车", pinyin: "chūzūchē", en: "taxi", cat: "nouns" },
+  { id: 71, zh: "电视", pinyin: "diànshì", en: "TV", cat: "nouns" },
+  { id: 72, zh: "电脑", pinyin: "diànnǎo", en: "computer", cat: "nouns" },
+  { id: 73, zh: "电影", pinyin: "diànyǐng", en: "movie", cat: "nouns" },
+  { id: 74, zh: "天气", pinyin: "tiānqì", en: "weather", cat: "nouns" },
+  { id: 75, zh: "猫", pinyin: "māo", en: "cat", cat: "nouns" },
+  { id: 76, zh: "狗", pinyin: "gǒu", en: "dog", cat: "nouns" },
+  { id: 77, zh: "书", pinyin: "shū", en: "book", cat: "nouns" },
+  { id: 78, zh: "桌子", pinyin: "zhuōzi", en: "table", cat: "nouns" },
+  { id: 79, zh: "椅子", pinyin: "yǐzi", en: "chair", cat: "nouns" },
+  { id: 80, zh: "衣服", pinyin: "yīfu", en: "clothes", cat: "nouns" },
+
+  // Nouns - Places & Time
+  { id: 81, zh: "中国", pinyin: "Zhōngguó", en: "China", cat: "nouns" },
+  { id: 82, zh: "北京", pinyin: "Běijīng", en: "Beijing", cat: "nouns" },
+  { id: 83, zh: "学校", pinyin: "xuéxiào", en: "school", cat: "nouns" },
+  { id: 84, zh: "医院", pinyin: "yīyuàn", en: "hospital", cat: "nouns" },
+  { id: 85, zh: "商店", pinyin: "shāngdiàn", en: "shop, store", cat: "nouns" },
+  { id: 86, zh: "饭店", pinyin: "fàndiàn", en: "restaurant, hotel", cat: "nouns" },
+  { id: 87, zh: "前面", pinyin: "qiánmiàn", en: "front", cat: "nouns" },
+  { id: 88, zh: "后面", pinyin: "hòumiàn", en: "back, behind", cat: "nouns" },
+  { id: 89, zh: "里面", pinyin: "lǐmiàn", en: "inside", cat: "nouns" },
+  { id: 90, zh: "上", pinyin: "shàng", en: "up, on, above", cat: "nouns" },
+  { id: 91, zh: "下", pinyin: "xià", en: "down, under", cat: "nouns" },
+
+  // Time
+  { id: 92, zh: "今天", pinyin: "jīntiān", en: "today", cat: "time" },
+  { id: 93, zh: "明天", pinyin: "míngtiān", en: "tomorrow", cat: "time" },
+  { id: 94, zh: "昨天", pinyin: "zuótiān", en: "yesterday", cat: "time" },
+  { id: 95, zh: "现在", pinyin: "xiànzài", en: "now", cat: "time" },
+  { id: 96, zh: "时候", pinyin: "shíhou", en: "time, moment", cat: "time" },
+  { id: 97, zh: "年", pinyin: "nián", en: "year", cat: "time" },
+  { id: 98, zh: "月", pinyin: "yuè", en: "month", cat: "time" },
+  { id: 99, zh: "日", pinyin: "rì", en: "day, date", cat: "time" },
+  { id: 100, zh: "星期", pinyin: "xīngqī", en: "week", cat: "time" },
+  { id: 101, zh: "点", pinyin: "diǎn", en: "o'clock", cat: "time" },
+  { id: 102, zh: "分钟", pinyin: "fēnzhōng", en: "minute", cat: "time" },
+  { id: 103, zh: "上午", pinyin: "shàngwǔ", en: "morning (a.m.)", cat: "time" },
+  { id: 104, zh: "中午", pinyin: "zhōngwǔ", en: "noon", cat: "time" },
+  { id: 105, zh: "下午", pinyin: "xiàwǔ", en: "afternoon", cat: "time" },
+
+  // Numbers
+  { id: 106, zh: "一", pinyin: "yī", en: "one", cat: "numbers" },
+  { id: 107, zh: "二", pinyin: "èr", en: "two", cat: "numbers" },
+  { id: 108, zh: "三", pinyin: "sān", en: "three", cat: "numbers" },
+  { id: 109, zh: "四", pinyin: "sì", en: "four", cat: "numbers" },
+  { id: 110, zh: "五", pinyin: "wǔ", en: "five", cat: "numbers" },
+  { id: 111, zh: "六", pinyin: "liù", en: "six", cat: "numbers" },
+  { id: 112, zh: "七", pinyin: "qī", en: "seven", cat: "numbers" },
+  { id: 113, zh: "八", pinyin: "bā", en: "eight", cat: "numbers" },
+  { id: 114, zh: "九", pinyin: "jiǔ", en: "nine", cat: "numbers" },
+  { id: 115, zh: "十", pinyin: "shí", en: "ten", cat: "numbers" },
+  { id: 116, zh: "零", pinyin: "líng", en: "zero", cat: "numbers" },
+  { id: 117, zh: "百", pinyin: "bǎi", en: "hundred", cat: "numbers" },
+
+  // Adjectives
+  { id: 118, zh: "好", pinyin: "hǎo", en: "good", cat: "adjectives" },
+  { id: 119, zh: "大", pinyin: "dà", en: "big", cat: "adjectives" },
+  { id: 120, zh: "小", pinyin: "xiǎo", en: "small", cat: "adjectives" },
+  { id: 121, zh: "多", pinyin: "duō", en: "many, much", cat: "adjectives" },
+  { id: 122, zh: "少", pinyin: "shǎo", en: "few, little", cat: "adjectives" },
+  { id: 123, zh: "冷", pinyin: "lěng", en: "cold", cat: "adjectives" },
+  { id: 124, zh: "热", pinyin: "rè", en: "hot", cat: "adjectives" },
+  { id: 125, zh: "高兴", pinyin: "gāoxìng", en: "happy", cat: "adjectives" },
+  { id: 126, zh: "漂亮", pinyin: "piàoliang", en: "beautiful", cat: "adjectives" },
+
+  // Particles & Grammar
+  { id: 127, zh: "不", pinyin: "bù", en: "not", cat: "grammar" },
+  { id: 128, zh: "没", pinyin: "méi", en: "not (have)", cat: "grammar" },
+  { id: 129, zh: "很", pinyin: "hěn", en: "very", cat: "grammar" },
+  { id: 130, zh: "太", pinyin: "tài", en: "too (much)", cat: "grammar" },
+  { id: 131, zh: "都", pinyin: "dōu", en: "all, both", cat: "grammar" },
+  { id: 132, zh: "也", pinyin: "yě", en: "also", cat: "grammar" },
+  { id: 133, zh: "了", pinyin: "le", en: "(completed action)", cat: "grammar" },
+  { id: 134, zh: "的", pinyin: "de", en: "(possessive particle)", cat: "grammar" },
+  { id: 135, zh: "吗", pinyin: "ma", en: "(question particle)", cat: "grammar" },
+  { id: 136, zh: "呢", pinyin: "ne", en: "(and you? particle)", cat: "grammar" },
+  { id: 137, zh: "在", pinyin: "zài", en: "at, in; (ongoing)", cat: "grammar" },
+  { id: 138, zh: "和", pinyin: "hé", en: "and", cat: "grammar" },
+  { id: 139, zh: "个", pinyin: "gè", en: "(general measure word)", cat: "grammar" },
+  { id: 140, zh: "岁", pinyin: "suì", en: "years old", cat: "grammar" },
+  { id: 141, zh: "块", pinyin: "kuài", en: "(measure word for money)", cat: "grammar" },
+  { id: 142, zh: "本", pinyin: "běn", en: "(measure word for books)", cat: "grammar" },
+  { id: 143, zh: "些", pinyin: "xiē", en: "some", cat: "grammar" },
+  { id: 144, zh: "对不起", pinyin: "duìbuqǐ", en: "sorry", cat: "grammar" },
+  { id: 145, zh: "没关系", pinyin: "méi guānxi", en: "it's okay", cat: "grammar" },
+  { id: 146, zh: "谢谢", pinyin: "xièxie", en: "thank you", cat: "grammar" },
+  { id: 147, zh: "不客气", pinyin: "bú kèqi", en: "you're welcome", cat: "grammar" },
+  { id: 148, zh: "再见", pinyin: "zàijiàn", en: "goodbye", cat: "grammar" },
+  { id: 149, zh: "你好", pinyin: "nǐ hǎo", en: "hello", cat: "grammar" },
+  { id: 150, zh: "名字", pinyin: "míngzi", en: "name", cat: "nouns" },
+];
+
+const SENTENCES = [
+  { parts: ["我", "是", "学生"], pinyin: "Wǒ shì xuésheng", en: "I am a student" },
+  { parts: ["你", "喜欢", "吃", "水果", "吗"], pinyin: "Nǐ xǐhuan chī shuǐguǒ ma", en: "Do you like to eat fruit?" },
+  { parts: ["他", "在", "学校", "工作"], pinyin: "Tā zài xuéxiào gōngzuò", en: "He works at school" },
+  { parts: ["今天", "天气", "很", "好"], pinyin: "Jīntiān tiānqì hěn hǎo", en: "The weather is very good today" },
+  { parts: ["我", "想", "喝", "茶"], pinyin: "Wǒ xiǎng hē chá", en: "I want to drink tea" },
+  { parts: ["她", "有", "三", "个", "朋友"], pinyin: "Tā yǒu sān gè péngyou", en: "She has three friends" },
+  { parts: ["你", "会", "说", "中文", "吗"], pinyin: "Nǐ huì shuō Zhōngwén ma", en: "Can you speak Chinese?" , extra: ["中文"] },
+  { parts: ["我们", "明天", "去", "北京"], pinyin: "Wǒmen míngtiān qù Běijīng", en: "We are going to Beijing tomorrow" },
+  { parts: ["这", "个", "东西", "多少", "钱"], pinyin: "Zhè gè dōngxi duōshao qián", en: "How much does this thing cost?" },
+  { parts: ["他", "不", "喜欢", "看", "电视"], pinyin: "Tā bù xǐhuan kàn diànshì", en: "He doesn't like watching TV" },
+  { parts: ["妈妈", "买", "了", "苹果"], pinyin: "Māma mǎi le píngguǒ", en: "Mom bought apples" },
+  { parts: ["我", "的", "猫", "很", "小"], pinyin: "Wǒ de māo hěn xiǎo", en: "My cat is very small" },
+  { parts: ["爸爸", "在", "家", "里面"], pinyin: "Bàba zài jiā lǐmiàn", en: "Dad is inside the house" },
+  { parts: ["请", "坐", "这", "个", "椅子"], pinyin: "Qǐng zuò zhè gè yǐzi", en: "Please sit on this chair" },
+  { parts: ["我", "认识", "那", "个", "医生"], pinyin: "Wǒ rènshi nà gè yīshēng", en: "I know that doctor" },
+  { parts: ["现在", "几", "点"], pinyin: "Xiànzài jǐ diǎn", en: "What time is it now?" },
+  { parts: ["你", "叫", "什么", "名字"], pinyin: "Nǐ jiào shénme míngzi", en: "What is your name?" },
+  { parts: ["她", "也", "是", "老师"], pinyin: "Tā yě shì lǎoshī", en: "She is also a teacher" },
+  { parts: ["我", "昨天", "没", "睡觉"], pinyin: "Wǒ zuótiān méi shuìjiào", en: "I didn't sleep yesterday" },
+  { parts: ["他们", "都", "很", "高兴"], pinyin: "Tāmen dōu hěn gāoxìng", en: "They are all very happy" },
+  { parts: ["这", "本", "书", "很", "好"], pinyin: "Zhè běn shū hěn hǎo", en: "This book is very good" },
+  { parts: ["你", "想", "吃", "米饭", "吗"], pinyin: "Nǐ xiǎng chī mǐfàn ma", en: "Do you want to eat rice?" },
+  { parts: ["我", "的", "朋友", "来", "了"], pinyin: "Wǒ de péngyou lái le", en: "My friend has come" },
+  { parts: ["下午", "我", "去", "商店"], pinyin: "Xiàwǔ wǒ qù shāngdiàn", en: "In the afternoon I go to the store" },
+];
+
+const EXTRA_WORDS = ["中文"];
+
+const PINYIN_MAP = Object.fromEntries([
+  ...HSK1_VOCAB.map((w) => [w.zh, w.pinyin]),
+  ["中文", "Zhōngwén"],
+]);
+
+const CATEGORIES = {
+  pronouns: "Местоимения",
+  verbs: "Глаголы",
+  nouns: "Существительные",
+  time: "Время",
+  numbers: "Числа",
+  adjectives: "Прилагательные",
+  grammar: "Грамматика",
+};
+
+const CAT_COLORS = {
+  pronouns: "#E8B4B8",
+  verbs: "#B8D4E3",
+  nouns: "#D4C5A9",
+  time: "#C5B8D4",
+  numbers: "#A9D4B8",
+  adjectives: "#E3C8B8",
+  grammar: "#B8C5D4",
+};
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function FlashCard({ word, flipped, onFlip, isMobile, onSwipeLeft, onSwipeRight }) {
+  const touchStart = useRef(null);
+  const handleTouchStart = (e) => { touchStart.current = e.touches[0].clientX; };
+  const handleTouchEnd = (e) => {
+    if (touchStart.current === null) return;
+    const diff = e.changedTouches[0].clientX - touchStart.current;
+    if (Math.abs(diff) > 60) {
+      if (diff > 0 && onSwipeRight) onSwipeRight();
+      if (diff < 0 && onSwipeLeft) onSwipeLeft();
+    }
+    touchStart.current = null;
+  };
+
+  return (
+    <div
+      onClick={onFlip}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      style={{
+        perspective: "1000px",
+        width: "100%",
+        maxWidth: isMobile ? "100%" : 380,
+        height: isMobile ? 220 : 280,
+        cursor: "pointer",
+        margin: "0 auto",
+      }}
+    >
+      <div
+        style={{
+          width: "100%",
+          height: "100%",
+          position: "relative",
+          transformStyle: "preserve-3d",
+          transition: "transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
+          transform: flipped ? "rotateY(180deg)" : "rotateY(0deg)",
+        }}
+      >
+        {/* Front */}
+        <div
+          style={{
+            position: "absolute",
+            width: "100%",
+            height: "100%",
+            backfaceVisibility: "hidden",
+            background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)",
+            borderRadius: isMobile ? 16 : 20,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            border: "1px solid rgba(255,255,255,0.08)",
+            boxShadow: "0 20px 60px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05)",
+          }}
+        >
+          <div
+            style={{
+              fontSize: isMobile ? 56 : 80,
+              fontWeight: 300,
+              color: "#f0e6d3",
+              letterSpacing: 8,
+              lineHeight: 1.1,
+              fontFamily: "'Noto Serif SC', 'Songti SC', serif",
+            }}
+          >
+            {word.zh}
+          </div>
+          <div
+            style={{
+              marginTop: isMobile ? 8 : 12,
+              fontSize: isMobile ? 16 : 20,
+              color: "rgba(192,57,43,0.55)",
+              fontStyle: "italic",
+              fontFamily: "'Crimson Text', Georgia, serif",
+            }}
+          >
+            {word.pinyin}
+          </div>
+          <div
+            style={{
+              marginTop: isMobile ? 8 : 12,
+              fontSize: isMobile ? 11 : 13,
+              color: "rgba(240,230,211,0.35)",
+              letterSpacing: 3,
+              textTransform: "uppercase",
+            }}
+          >
+            нажми для перевода
+          </div>
+        </div>
+        {/* Back */}
+        <div
+          style={{
+            position: "absolute",
+            width: "100%",
+            height: "100%",
+            backfaceVisibility: "hidden",
+            transform: "rotateY(180deg)",
+            background: "linear-gradient(135deg, #f0e6d3 0%, #e8dcc8 100%)",
+            borderRadius: isMobile ? 16 : 20,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            border: "1px solid rgba(0,0,0,0.06)",
+            boxShadow: "0 20px 60px rgba(0,0,0,0.15)",
+            padding: isMobile ? 16 : 24,
+          }}
+        >
+          <div
+            style={{
+              fontSize: isMobile ? 36 : 48,
+              color: "#1a1a2e",
+              fontFamily: "'Noto Serif SC', 'Songti SC', serif",
+              fontWeight: 300,
+            }}
+          >
+            {word.zh}
+          </div>
+          <div
+            style={{
+              fontSize: 22,
+              color: "#c0392b",
+              marginTop: 8,
+              fontStyle: "italic",
+              fontFamily: "'Crimson Text', Georgia, serif",
+            }}
+          >
+            {word.pinyin}
+          </div>
+          <div
+            style={{
+              fontSize: 18,
+              color: "#2c3e50",
+              marginTop: 12,
+              textAlign: "center",
+              fontFamily: "'Crimson Text', Georgia, serif",
+            }}
+          >
+            {word.en}
+          </div>
+          <div
+            style={{
+              marginTop: 12,
+              fontSize: 11,
+              color: CAT_COLORS[word.cat],
+              background: "#1a1a2e",
+              padding: "4px 12px",
+              borderRadius: 20,
+              letterSpacing: 1,
+            }}
+          >
+            {CATEGORIES[word.cat]}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SentenceExercise({ sentence, onComplete, isMobile }) {
+  const [selected, setSelected] = useState([]);
+  const [available, setAvailable] = useState([]);
+  const [status, setStatus] = useState(null); // null, 'correct', 'wrong'
+  const [showHint, setShowHint] = useState(false);
+
+  useEffect(() => {
+    const extra = (sentence.extra || []);
+    const allParts = [...sentence.parts, ...extra];
+    setAvailable(shuffle(allParts).map((w, i) => ({ word: w, id: `${w}-${i}` })));
+    setSelected([]);
+    setStatus(null);
+    setShowHint(false);
+  }, [sentence]);
+
+  const handleSelect = (item) => {
+    if (status) return;
+    setSelected((s) => [...s, item]);
+    setAvailable((a) => a.filter((x) => x.id !== item.id));
+  };
+
+  const handleDeselect = (item) => {
+    if (status) return;
+    setAvailable((a) => [...a, item]);
+    setSelected((s) => s.filter((x) => x.id !== item.id));
+  };
+
+  const checkAnswer = () => {
+    const answer = selected.map((s) => s.word).join("");
+    const correct = sentence.parts.join("");
+    if (answer === correct) {
+      setStatus("correct");
+      setTimeout(() => onComplete(true), 1200);
+    } else {
+      setStatus("wrong");
+      setTimeout(() => setStatus(null), 1500);
+    }
+  };
+
+  return (
+    <div style={{ width: "100%", maxWidth: isMobile ? "100%" : 520, margin: "0 auto" }}>
+      <div
+        style={{
+          textAlign: "center",
+          marginBottom: isMobile ? 20 : 28,
+          padding: isMobile ? "16px 12px" : "20px 16px",
+          background: "rgba(255,255,255,0.04)",
+          borderRadius: 16,
+          border: "1px solid rgba(255,255,255,0.06)",
+        }}
+      >
+        <div
+          style={{
+            fontSize: 13,
+            color: "rgba(240,230,211,0.4)",
+            letterSpacing: 2,
+            marginBottom: 8,
+            textTransform: "uppercase",
+          }}
+        >
+          Переведи на китайский
+        </div>
+        <div
+          style={{
+            fontSize: isMobile ? 18 : 22,
+            color: "#f0e6d3",
+            fontFamily: "'Crimson Text', Georgia, serif",
+          }}
+        >
+          {sentence.en}
+        </div>
+        {showHint && (
+          <div
+            style={{
+              marginTop: 10,
+              fontSize: 15,
+              color: "#c0392b",
+              fontStyle: "italic",
+              fontFamily: "'Crimson Text', Georgia, serif",
+            }}
+          >
+            {sentence.pinyin}
+          </div>
+        )}
+      </div>
+
+      {/* Selected area */}
+      <div
+        style={{
+          minHeight: isMobile ? 64 : 76,
+          background: status === "correct"
+            ? "rgba(39,174,96,0.12)"
+            : status === "wrong"
+            ? "rgba(192,57,43,0.12)"
+            : "rgba(255,255,255,0.03)",
+          borderRadius: isMobile ? 12 : 14,
+          border: `2px ${status === "correct" ? "solid #27ae60" : status === "wrong" ? "solid #c0392b" : "dashed rgba(240,230,211,0.15)"}`,
+          padding: isMobile ? 8 : 12,
+          display: "flex",
+          flexWrap: "wrap",
+          gap: isMobile ? 6 : 8,
+          alignItems: "center",
+          justifyContent: "center",
+          marginBottom: isMobile ? 12 : 16,
+          transition: "all 0.3s ease",
+        }}
+      >
+        {selected.length === 0 && (
+          <span style={{ color: "rgba(240,230,211,0.2)", fontSize: isMobile ? 12 : 14 }}>
+            {isMobile ? "Расставь слова..." : "Расставь слова в правильном порядке..."}
+          </span>
+        )}
+        {selected.map((item) => (
+          <button
+            key={item.id}
+            onClick={() => handleDeselect(item)}
+            style={{
+              background: "linear-gradient(135deg, #f0e6d3 0%, #e8dcc8 100%)",
+              border: "none",
+              borderRadius: isMobile ? 8 : 10,
+              padding: isMobile ? "4px 10px 6px" : "6px 16px 8px",
+              cursor: "pointer",
+              fontFamily: "'Noto Serif SC', 'Songti SC', serif",
+              color: "#1a1a2e",
+              transition: "transform 0.15s ease",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 1,
+            }}
+            onMouseOver={(e) => (e.currentTarget.style.transform = "scale(0.95)")}
+            onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")}
+          >
+            <span style={{ fontSize: isMobile ? 11 : 14, color: "rgba(192,57,43,0.8)", fontFamily: "'Crimson Text', Georgia, serif", fontStyle: "italic" }}>
+              {PINYIN_MAP[item.word] || ""}
+            </span>
+            <span style={{ fontSize: isMobile ? 18 : 22 }}>{item.word}</span>
+          </button>
+        ))}
+      </div>
+
+      <div
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: isMobile ? 6 : 8,
+          justifyContent: "center",
+          marginBottom: isMobile ? 16 : 24,
+        }}
+      >
+        {available.map((item) => (
+          <button
+            key={item.id}
+            onClick={() => handleSelect(item)}
+            style={{
+              background: "rgba(240,230,211,0.08)",
+              border: "1px solid rgba(240,230,211,0.15)",
+              borderRadius: isMobile ? 8 : 10,
+              padding: isMobile ? "4px 10px 6px" : "6px 16px 8px",
+              cursor: "pointer",
+              fontFamily: "'Noto Serif SC', 'Songti SC', serif",
+              color: "#f0e6d3",
+              transition: "all 0.15s ease",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 1,
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.background = "rgba(240,230,211,0.15)";
+              e.currentTarget.style.transform = "translateY(-2px)";
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.background = "rgba(240,230,211,0.08)";
+              e.currentTarget.style.transform = "translateY(0)";
+            }}
+          >
+            <span style={{ fontSize: isMobile ? 11 : 14, color: "rgba(192,57,43,0.7)", fontFamily: "'Crimson Text', Georgia, serif", fontStyle: "italic" }}>
+              {PINYIN_MAP[item.word] || ""}
+            </span>
+            <span style={{ fontSize: isMobile ? 18 : 22 }}>{item.word}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* Buttons */}
+      <div style={{ display: "flex", gap: isMobile ? 8 : 10, justifyContent: "center", flexWrap: "wrap" }}>
+        <button
+          onClick={() => setShowHint(!showHint)}
+          style={{
+            background: "transparent",
+            border: "1px solid rgba(240,230,211,0.2)",
+            borderRadius: 10,
+            padding: isMobile ? "10px 16px" : "10px 20px",
+            color: "rgba(240,230,211,0.5)",
+            cursor: "pointer",
+            fontSize: isMobile ? 13 : 14,
+            transition: "all 0.2s ease",
+          }}
+          onMouseOver={(e) => (e.target.style.borderColor = "rgba(240,230,211,0.4)")}
+          onMouseOut={(e) => (e.target.style.borderColor = "rgba(240,230,211,0.2)")}
+        >
+          {showHint ? "Скрыть пиньинь" : "Показать пиньинь"}
+        </button>
+        <button
+          onClick={checkAnswer}
+          disabled={selected.length === 0 || status !== null}
+          style={{
+            background:
+              selected.length === 0 || status !== null
+                ? "rgba(240,230,211,0.05)"
+                : "linear-gradient(135deg, #c0392b 0%, #a93226 100%)",
+            border: "none",
+            borderRadius: 10,
+            padding: "10px 28px",
+            color: selected.length === 0 || status !== null ? "rgba(240,230,211,0.2)" : "#f0e6d3",
+            cursor: selected.length === 0 || status !== null ? "default" : "pointer",
+            fontSize: 14,
+            fontWeight: 600,
+            transition: "all 0.2s ease",
+            boxShadow:
+              selected.length > 0 && status === null ? "0 4px 15px rgba(192,57,43,0.3)" : "none",
+          }}
+        >
+          Проверить
+        </button>
+      </div>
+
+      {status === "correct" && (
+        <div
+          style={{
+            textAlign: "center",
+            marginTop: 16,
+            fontSize: 16,
+            color: "#27ae60",
+            fontWeight: 600,
+          }}
+        >
+          ✓ Правильно! 太好了！
+        </div>
+      )}
+      {status === "wrong" && (
+        <div
+          style={{
+            textAlign: "center",
+            marginTop: 16,
+            fontSize: 16,
+            color: "#c0392b",
+          }}
+        >
+          Попробуй ещё раз
+        </div>
+      )}
+    </div>
+  );
+}
+
+function VocabList({ words, filter, onFilterChange, isMobile }) {
+  return (
+    <div style={{ width: "100%", maxWidth: 600, margin: "0 auto" }}>
+      <div
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: isMobile ? 4 : 6,
+          justifyContent: "center",
+          marginBottom: isMobile ? 16 : 24,
+        }}
+      >
+        <button
+          onClick={() => onFilterChange("all")}
+          style={{
+            background: filter === "all" ? "rgba(240,230,211,0.15)" : "transparent",
+            border: `1px solid ${filter === "all" ? "rgba(240,230,211,0.3)" : "rgba(240,230,211,0.1)"}`,
+            borderRadius: 20,
+            padding: "6px 14px",
+            color: filter === "all" ? "#f0e6d3" : "rgba(240,230,211,0.4)",
+            cursor: "pointer",
+            fontSize: 12,
+            transition: "all 0.2s",
+          }}
+        >
+          Все ({words.length})
+        </button>
+        {Object.entries(CATEGORIES).map(([key, label]) => {
+          const count = words.filter((w) => w.cat === key).length;
+          return (
+            <button
+              key={key}
+              onClick={() => onFilterChange(key)}
+              style={{
+                background: filter === key ? "rgba(240,230,211,0.15)" : "transparent",
+                border: `1px solid ${filter === key ? CAT_COLORS[key] : "rgba(240,230,211,0.1)"}`,
+                borderRadius: 20,
+                padding: "6px 14px",
+                color: filter === key ? CAT_COLORS[key] : "rgba(240,230,211,0.4)",
+                cursor: "pointer",
+                fontSize: 12,
+                transition: "all 0.2s",
+              }}
+            >
+              {label} ({count})
+            </button>
+          );
+        })}
+      </div>
+      <div style={{ display: "grid", gap: 3 }}>
+        {(filter === "all" ? words : words.filter((w) => w.cat === filter)).map((word) => (
+          <div
+            key={word.id}
+            style={{
+              display: "grid",
+              gridTemplateColumns: isMobile ? "50px 1fr" : "60px 1fr 1fr",
+              alignItems: "center",
+              padding: isMobile ? "8px 12px" : "10px 16px",
+              background: "rgba(255,255,255,0.02)",
+              borderRadius: 8,
+              borderLeft: `3px solid ${CAT_COLORS[word.cat]}40`,
+              transition: "background 0.2s",
+            }}
+            onMouseOver={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.05)")}
+            onMouseOut={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.02)")}
+          >
+            <span
+              style={{
+                fontSize: isMobile ? 20 : 24,
+                color: "#f0e6d3",
+                fontFamily: "'Noto Serif SC', 'Songti SC', serif",
+              }}
+            >
+              {word.zh}
+            </span>
+            {isMobile ? (
+              <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                <span
+                  style={{
+                    fontSize: 13,
+                    color: "#c0392b",
+                    fontStyle: "italic",
+                    fontFamily: "'Crimson Text', Georgia, serif",
+                  }}
+                >
+                  {word.pinyin}
+                </span>
+                <span style={{ fontSize: 12, color: "rgba(240,230,211,0.6)" }}>{word.en}</span>
+              </div>
+            ) : (
+              <>
+                <span
+                  style={{
+                    fontSize: 14,
+                    color: "#c0392b",
+                    fontStyle: "italic",
+                    fontFamily: "'Crimson Text', Georgia, serif",
+                  }}
+                >
+                  {word.pinyin}
+                </span>
+                <span style={{ fontSize: 13, color: "rgba(240,230,211,0.6)" }}>{word.en}</span>
+              </>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function HSK1App() {
+  const isMobile = useIsMobile();
+  const [mode, setMode] = useState("cards");
+  const [cardIndex, setCardIndex] = useState(0);
+  const [flipped, setFlipped] = useState(false);
+  const [deck, setDeck] = useState(() => shuffle(HSK1_VOCAB));
+  const [known, setKnown] = useState(new Set());
+  const [sentenceIndex, setSentenceIndex] = useState(0);
+  const [sentenceDeck, setSentenceDeck] = useState(() => shuffle(SENTENCES));
+  const [sentenceScore, setSentenceScore] = useState({ correct: 0, total: 0 });
+  const [listFilter, setListFilter] = useState("all");
+  const [filterCat, setFilterCat] = useState("all");
+
+  const filteredDeck = filterCat === "all" ? deck : deck.filter((w) => w.cat === filterCat);
+  const currentCard = filteredDeck[cardIndex % Math.max(filteredDeck.length, 1)];
+
+  const nextCard = () => {
+    setFlipped(false);
+    setTimeout(() => setCardIndex((i) => (i + 1) % Math.max(filteredDeck.length, 1)), 150);
+  };
+
+  const markKnown = () => {
+    if (currentCard) {
+      setKnown((s) => new Set([...s, currentCard.id]));
+    }
+    nextCard();
+  };
+
+  const resetDeck = () => {
+    setDeck(shuffle(HSK1_VOCAB));
+    setCardIndex(0);
+    setFlipped(false);
+    setKnown(new Set());
+  };
+
+  const onSentenceComplete = (correct) => {
+    setSentenceScore((s) => ({
+      correct: s.correct + (correct ? 1 : 0),
+      total: s.total + 1,
+    }));
+    setSentenceIndex((i) => (i + 1) % sentenceDeck.length);
+  };
+
+  const resetSentences = () => {
+    setSentenceDeck(shuffle(SENTENCES));
+    setSentenceIndex(0);
+    setSentenceScore({ correct: 0, total: 0 });
+  };
+
+  const progress = Math.round((known.size / HSK1_VOCAB.length) * 100);
+
+  return (
+    <div
+      style={{
+        minHeight: "100vh",
+        background: "linear-gradient(180deg, #0d1117 0%, #161b22 50%, #1a1a2e 100%)",
+        color: "#f0e6d3",
+        fontFamily: "'Segoe UI', -apple-system, sans-serif",
+        overflowX: "hidden",
+        WebkitTapHighlightColor: "transparent",
+        touchAction: "manipulation",
+      }}
+    >
+      <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+      <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@200;300;400;600&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap"
+        rel="stylesheet"
+      />
+
+      {/* Header */}
+      <div
+        style={{
+          textAlign: "center",
+          padding: isMobile ? "20px 16px 14px" : "32px 20px 20px",
+          borderBottom: "1px solid rgba(240,230,211,0.06)",
+        }}
+      >
+        <div
+          style={{
+            fontSize: isMobile ? 32 : 42,
+            fontWeight: 200,
+            fontFamily: "'Noto Serif SC', serif",
+            letterSpacing: isMobile ? 8 : 12,
+            color: "#f0e6d3",
+            marginBottom: 4,
+          }}
+        >
+          汉语
+        </div>
+        <div
+          style={{
+            fontSize: 12,
+            letterSpacing: 4,
+            color: "rgba(240,230,211,0.3)",
+            textTransform: "uppercase",
+          }}
+        >
+          HSK 1 · {HSK1_VOCAB.length} слов
+        </div>
+      </div>
+
+      {/* Navigation */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          gap: isMobile ? 2 : 4,
+          padding: isMobile ? "12px 8px" : "16px 20px",
+        }}
+      >
+        {[
+          { key: "cards", label: "Карточки", icon: "層" },
+          { key: "sentences", label: "Предложения", icon: "文" },
+          { key: "list", label: "Словарь", icon: "典" },
+        ].map((tab) => (
+          <button
+            key={tab.key}
+            onClick={() => setMode(tab.key)}
+            style={{
+              background: mode === tab.key ? "rgba(240,230,211,0.08)" : "transparent",
+              border: `1px solid ${mode === tab.key ? "rgba(240,230,211,0.15)" : "transparent"}`,
+              borderRadius: isMobile ? 10 : 12,
+              padding: isMobile ? "8px 12px" : "10px 20px",
+              color: mode === tab.key ? "#f0e6d3" : "rgba(240,230,211,0.35)",
+              cursor: "pointer",
+              fontSize: isMobile ? 12 : 13,
+              display: "flex",
+              alignItems: "center",
+              gap: isMobile ? 4 : 8,
+              transition: "all 0.2s ease",
+            }}
+          >
+            <span style={{ fontFamily: "'Noto Serif SC', serif", fontSize: isMobile ? 15 : 18 }}>{tab.icon}</span>
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Main Content */}
+      <div style={{ padding: isMobile ? "12px 12px 40px" : "20px 20px 60px" }}>
+        {/* FLASHCARDS MODE */}
+        {mode === "cards" && (
+          <div>
+            {/* Progress bar */}
+            <div style={{ maxWidth: 380, margin: "0 auto 20px" }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  fontSize: 12,
+                  color: "rgba(240,230,211,0.35)",
+                  marginBottom: 6,
+                }}
+              >
+                <span>Изучено: {known.size}/{HSK1_VOCAB.length}</span>
+                <span>{progress}%</span>
+              </div>
+              <div
+                style={{
+                  height: 3,
+                  background: "rgba(240,230,211,0.06)",
+                  borderRadius: 3,
+                  overflow: "hidden",
+                }}
+              >
+                <div
+                  style={{
+                    height: "100%",
+                    width: `${progress}%`,
+                    background: "linear-gradient(90deg, #c0392b, #e74c3c)",
+                    borderRadius: 3,
+                    transition: "width 0.5s ease",
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Category filter */}
+            <div
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: 4,
+                justifyContent: "center",
+                marginBottom: 20,
+              }}
+            >
+              <button
+                onClick={() => { setFilterCat("all"); setCardIndex(0); setFlipped(false); }}
+                style={{
+                  background: filterCat === "all" ? "rgba(240,230,211,0.1)" : "transparent",
+                  border: `1px solid ${filterCat === "all" ? "rgba(240,230,211,0.2)" : "rgba(240,230,211,0.06)"}`,
+                  borderRadius: 16,
+                  padding: "4px 10px",
+                  color: filterCat === "all" ? "#f0e6d3" : "rgba(240,230,211,0.3)",
+                  cursor: "pointer",
+                  fontSize: 11,
+                }}
+              >
+                Все
+              </button>
+              {Object.entries(CATEGORIES).map(([key, label]) => (
+                <button
+                  key={key}
+                  onClick={() => { setFilterCat(key); setCardIndex(0); setFlipped(false); }}
+                  style={{
+                    background: filterCat === key ? "rgba(240,230,211,0.1)" : "transparent",
+                    border: `1px solid ${filterCat === key ? CAT_COLORS[key] + "60" : "rgba(240,230,211,0.06)"}`,
+                    borderRadius: 16,
+                    padding: "4px 10px",
+                    color: filterCat === key ? CAT_COLORS[key] : "rgba(240,230,211,0.3)",
+                    cursor: "pointer",
+                    fontSize: 11,
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            {currentCard && <FlashCard word={currentCard} flipped={flipped} onFlip={() => setFlipped(!flipped)} isMobile={isMobile} onSwipeLeft={nextCard} onSwipeRight={markKnown} />}
+
+            {/* Card counter */}
+            <div
+              style={{
+                textAlign: "center",
+                marginTop: isMobile ? 10 : 16,
+                fontSize: 12,
+                color: "rgba(240,230,211,0.25)",
+              }}
+            >
+              {(cardIndex % Math.max(filteredDeck.length, 1)) + 1} / {filteredDeck.length}
+              {isMobile && (
+                <div style={{ marginTop: 4, fontSize: 10, color: "rgba(240,230,211,0.15)" }}>
+                  ← свайп: дальше · свайп →: знаю
+                </div>
+              )}
+            </div>
+
+            {/* Action buttons */}
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                gap: isMobile ? 8 : 12,
+                marginTop: isMobile ? 14 : 20,
+              }}
+            >
+              <button
+                onClick={nextCard}
+                style={{
+                  background: "rgba(240,230,211,0.06)",
+                  border: "1px solid rgba(240,230,211,0.1)",
+                  borderRadius: 12,
+                  padding: isMobile ? "10px 18px" : "12px 28px",
+                  color: "#f0e6d3",
+                  cursor: "pointer",
+                  fontSize: isMobile ? 13 : 14,
+                  transition: "all 0.2s",
+                }}
+                onMouseOver={(e) => (e.target.style.background = "rgba(240,230,211,0.1)")}
+                onMouseOut={(e) => (e.target.style.background = "rgba(240,230,211,0.06)")}
+              >
+                Дальше →
+              </button>
+              <button
+                onClick={markKnown}
+                style={{
+                  background: "rgba(39,174,96,0.15)",
+                  border: "1px solid rgba(39,174,96,0.3)",
+                  borderRadius: 12,
+                  padding: isMobile ? "10px 18px" : "12px 28px",
+                  color: "#27ae60",
+                  cursor: "pointer",
+                  fontSize: isMobile ? 13 : 14,
+                  transition: "all 0.2s",
+                }}
+                onMouseOver={(e) => (e.target.style.background = "rgba(39,174,96,0.25)")}
+                onMouseOut={(e) => (e.target.style.background = "rgba(39,174,96,0.15)")}
+              >
+                ✓ Знаю
+              </button>
+              <button
+                onClick={resetDeck}
+                style={{
+                  background: "transparent",
+                  border: "1px solid rgba(240,230,211,0.08)",
+                  borderRadius: 12,
+                  padding: "12px 16px",
+                  color: "rgba(240,230,211,0.3)",
+                  cursor: "pointer",
+                  fontSize: 14,
+                  transition: "all 0.2s",
+                }}
+                title="Перемешать"
+              >
+                ↻
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* SENTENCES MODE */}
+        {mode === "sentences" && (
+          <div>
+            <div
+              style={{
+                textAlign: "center",
+                marginBottom: 20,
+                fontSize: 13,
+                color: "rgba(240,230,211,0.4)",
+              }}
+            >
+              Задание {sentenceIndex + 1}/{sentenceDeck.length}
+              {sentenceScore.total > 0 && (
+                <span style={{ marginLeft: 12, color: "#27ae60" }}>
+                  ✓ {sentenceScore.correct}/{sentenceScore.total}
+                </span>
+              )}
+              <button
+                onClick={resetSentences}
+                style={{
+                  marginLeft: 12,
+                  background: "transparent",
+                  border: "1px solid rgba(240,230,211,0.1)",
+                  borderRadius: 8,
+                  padding: "2px 10px",
+                  color: "rgba(240,230,211,0.3)",
+                  cursor: "pointer",
+                  fontSize: 12,
+                }}
+              >
+                ↻
+              </button>
+            </div>
+            <SentenceExercise
+              key={sentenceIndex}
+              sentence={sentenceDeck[sentenceIndex]}
+              onComplete={onSentenceComplete}
+              isMobile={isMobile}
+            />
+          </div>
+        )}
+
+        {/* VOCAB LIST MODE */}
+        {mode === "list" && (
+          <VocabList words={HSK1_VOCAB} filter={listFilter} onFilterChange={setListFilter} isMobile={isMobile} />
+        )}
+      </div>
+    </div>
+  );
+}
+
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<HSK1App />);
+  </script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(reg => console.log('SW registered'))
+          .catch(err => console.log('SW failed:', err));
+      });
+    }
+  </script>
+</body>
+</html>
